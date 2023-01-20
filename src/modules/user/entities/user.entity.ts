@@ -5,7 +5,7 @@ import {
     PrimaryGeneratedColumn,
   } from 'typeorm';
 
-import { Photo } from './photo.entity';
+import { Photo } from '../../photos/entities/photo.entity';
 
 @Entity('User')
 export class User {
@@ -30,5 +30,5 @@ export class User {
   @OneToMany(() => Photo, (photo) => photo.user, {
     cascade: true
   })
-  photos: Photo[];
+  photos?: Photo[];
 }

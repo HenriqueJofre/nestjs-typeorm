@@ -1,42 +1,80 @@
-import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Res, HttpException, HttpStatus, Put } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Req, Res, Put } from '@nestjs/common';
 import { UserService } from './user.service';
+import { Request, Response } from 'express';
+import { ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  async create(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
-    try {
-      const uService = await this.userService.create(createUserDto);
-      if(uService.codeType === 1 || uService.codeType === 2){
-        return res.status(HttpStatus.OK).json({message: uService.message})
-      }
-    } catch (error) {
-      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  @ApiTags('user')
+  @ApiBody({
+    required: true,
+    type: CreateUserDto
+  })
+  @ApiResponse({ status: 200, description: "The user was registered!"})
+  @ApiResponse({ status: 201, description: "The user was registered!"})
+  @ApiResponse({ status: 403, description: "This user already exists!"})
+  @ApiResponse({ status: 500, description: "Internal server error"})
+  async create(@Req() req: Request, @Res() res: Response) {
+    return this.userService.create(req, res);
   }
 
   @Get()
-  async findAll() {
-    return this.userService.findAll();
+  @ApiTags('user')
+  @ApiResponse({
+    description: "It will return an array that contain a value or values with JSON",
+    type: [CreateUserDto]
+  })
+  @ApiResponse({ status: 200, description: "The users were encountered!"})
+  @ApiResponse({ status: 404, description: "There no users registered!"})
+  @ApiResponse({ status: 500, description: "Internal server error"})
+  async findAll(@Req() req: Request, @Res() res: Response) {
+    return this.userService.findAll(res, req);
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: string) {
-    return this.userService.findOne(+id);
+  @ApiTags('user')
+  @ApiParam({
+    name: ':id',
+    description: "User's id to seek"
+  })
+  @ApiResponse({
+    description: "It will return an array that contain a value with JSON",    
+    type: [CreateUserDto]
+  })
+  @ApiResponse({ status: 200, description: "The user was encountered!"})
+  @ApiResponse({ status: 404, description: "These user wasn't encountered!"})
+  @ApiResponse({ status: 500, description: "Internal server error"})
+  async findOne(@Req() req: Request, @Res() res: Response) {
+    return this.userService.findOne(req, res);
   }
 
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @ApiTags('user')
+  @ApiParam({
+    name: ':id',
+    description: "User's id to update info!"
+  })
+  @ApiResponse({ status: 200, description: "The user was updated!"})
+  @ApiResponse({ status: 404, description: "These user wasn't encountered!"})
+  @ApiResponse({ status: 500, description: "Internal server error"})
+  update(@Req() req: Request, @Res() res: Response) {
+    return this.userService.update(req, res);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: string) {
-    return this.userService.remove(+id);
+  @ApiTags('user')
+  @ApiParam({
+    name: ':id',
+    description: "User's id to remove!"
+  })
+  @ApiResponse({ status: 200, description: "The user was removed!"})
+  @ApiResponse({ status: 404, description: "These user wasn't encountered!"})
+  @ApiResponse({ status: 500, description: "Internal server error"})
+  remove(@Req() req: Request, @Res() res: Response) {
+    return this.userService.remove(req, res);
   }
 }

@@ -1,17 +1,16 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
-import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { PhotosModule } from './modules/photos/photos.module';
 
 @Module({
-  imports: [
-    UserModule,
+  imports: [    
     ConfigModule.forRoot({
-      envFilePath: ['./config/env/development.env'],
-      isGlobal: true
+      envFilePath: [`./config/env/${process.env.NODE_ENV}.env`],
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
@@ -24,19 +23,14 @@ import { ConfigModule } from '@nestjs/config';
         entities: [
           __dirname + '/modules/**/entities/*.entity{.ts,.js}',
         ],
-        synchronize: true
+        synchronize: (process.env.NODE_ENV === "development" ? true : false) // Synchronize prop indicates if database schema should be auto created on every application launch
       })
-    })
+    }),
+    UserModule,
+    PhotosModule,           
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 
-export class AppModule implements NestModule {
-  
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('user');
-  }
-}
+export class AppModule {}
